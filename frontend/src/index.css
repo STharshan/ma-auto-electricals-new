@@ -1,0 +1,25 @@
+/* index.css */
+@import "tailwindcss";
+
+html, body {
+  width: 100%;
+  overflow-x: hidden; 
+  scroll-behavior: smooth;
+}
+
+/* Hide scrollbar for all browsers */
+.hide-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* src/index.css */
+.gradient-blue {
+  background: linear-gradient(90deg, #00c6ff, #0072ff);
+  -webkit-text-fill-color: transparent;
+  transform: translateZ(0);
+  will-change: transform;
+}
