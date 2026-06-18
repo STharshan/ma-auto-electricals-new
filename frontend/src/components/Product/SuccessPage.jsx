@@ -9,7 +9,7 @@ import {
   ArrowRight,
   CreditCard,
 } from "lucide-react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 
 export default function SuccessPage() {
   const [order, setOrder] = useState(null);
@@ -52,7 +52,8 @@ export default function SuccessPage() {
         }
 
         setLoading(false);
-      } catch {
+      } catch (error) {
+        console.error("Failed to fetch checkout success order:", error);
         setErrorMessage("Failed to fetch order details. Please try again or contact support.");
         setLoading(false);
         toast.error("Failed to fetch order.");
@@ -66,7 +67,6 @@ export default function SuccessPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-linear-to-br from-green-50 via-white to-green-50 p-4">
-        <Toaster position="top-right" />
         <div className="text-center space-y-6">
           <div className="relative w-28 h-28 md:w-36 md:h-36 mx-auto">
             <div className="absolute inset-0 bg-green-100 rounded-full animate-ping opacity-75"></div>
@@ -124,7 +124,6 @@ export default function SuccessPage() {
   // ---------------- Success State ----------------
   return (
     <div className="min-h-screen bg-linear-to-br from-green-50 via-white to-green-50 py-8 md:py-12 px-4">
-      <Toaster position="top-right" />
       <div className="max-w-4xl mx-auto space-y-6 md:space-y-8">
         {/* Header */}
         <div className="text-center space-y-4 animate-slideDown">

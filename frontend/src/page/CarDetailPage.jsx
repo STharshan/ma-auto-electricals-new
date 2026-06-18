@@ -16,13 +16,18 @@ export default function CarDetailPage() {
   const [car, setCar]           = useState(null);
   const [loading, setLoading]   = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     // _id is everything after the last "--"
     const id = slug.split("--").pop();
     axios.get(`${API_URL}/api/cars/${id}`)
       .then(res => setCar(res.data))
-      .catch(() => setNotFound(true))
+      .catch((error) => {
+        console.error("Failed to fetch car details:", error);
+        setErrorMessage("We couldn't load this car right now. Please try again later.");
+        setNotFound(true);
+      })
       .finally(() => setLoading(false));
   }, [slug]);
 
@@ -36,6 +41,7 @@ export default function CarDetailPage() {
     <div className="min-h-screen bg-white flex flex-col items-center justify-center gap-4">
       <Car size={64} className="text-gray-300" />
       <h2 className="text-2xl font-bold text-gray-600">Car Not Found</h2>
+      {errorMessage && <p className="text-gray-500 text-center max-w-md">{errorMessage}</p>}
       <button onClick={() => navigate("/car")}
         className="text-[#317F21] hover:underline flex items-center gap-1 font-medium">
         <ArrowLeft className="w-4 h-4" /> Back to Cars
@@ -75,9 +81,6 @@ export default function CarDetailPage() {
   // UnderTheBonnet needs: items[{icon, title, value}]
   // Only show rows that have both title and value filled
   const bonnetItems = (car.bonnetData || []).filter(b => b.title && b.value);
-
-  // Gallery needs: images[] with full URLs
-  const galleryImages = (car.images || []).map(img => `${API_URL}/images/${img}`);
 
   return (
     <div>

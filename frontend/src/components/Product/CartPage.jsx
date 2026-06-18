@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { ShoppingCart, Trash2, Plus, Minus, X } from "lucide-react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
 export default function CartPage() {
@@ -70,7 +70,8 @@ export default function CartPage() {
 
       updateCart(updatedCart);
       return { updatedCart, hasUnavailableItems, hasPriceChanges };
-    } catch {
+    } catch (error) {
+      console.error("Failed to refresh cart from server:", error);
       toast.error("Unable to refresh cart right now. Please try again.", { duration: 2000 });
       return {
         updatedCart: storedCart,
@@ -163,7 +164,8 @@ export default function CartPage() {
       }
 
       if (data.url) window.location.href = data.url;
-    } catch {
+    } catch (error) {
+      console.error("Checkout payment request failed:", error);
       toast.error("Payment failed", { duration: 2000 });
     }
   };
@@ -194,7 +196,6 @@ export default function CartPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6 pt-28">
-      <Toaster position="top-right" />
       <div className="max-w-6xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-800 mb-8 flex items-center gap-2">
           <ShoppingCart size={28} /> Your Cart

@@ -21,7 +21,8 @@ export default function ProductSellers() {
           setProducts(filteredSellers);
         }
       } catch (error) {
-       
+        console.error("Failed to fetch best seller products:", error);
+        setProducts([]);
       } finally {
         setLoading(false);
       }

@@ -260,7 +260,9 @@ export default function ProductCard() {
       setCategories(options);
       setSelectedCategories((prev) => (prev.length === 0 ? [options[0]] : prev));
     } catch (err) {
-      
+      console.error("Failed to fetch products for product grid:", err);
+      setAllProducts([]);
+      setCategories([{ value: "All", label: "All Categories" }]);
     }
   }, [API_URL]);
 

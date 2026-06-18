@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import emailjs from "@emailjs/browser";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import {
   FaCommentDots,
   FaUser,
@@ -87,7 +87,6 @@ export default function ContactSection() {
 
   return (
     <section className="py-16 bg-[#F3F6F4] overflow-x-hidden">
-      <Toaster position="top-right" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-12">
           {/* FORM */}
