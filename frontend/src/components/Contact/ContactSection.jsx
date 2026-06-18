@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import emailjs from "@emailjs/browser";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import toast, { Toaster } from "react-hot-toast";
 import {
   FaCommentDots,
   FaUser,
@@ -68,8 +67,8 @@ export default function ContactSection() {
       .send(SERVICE_ID, TEMPLATE_ID, formData, USER_ID)
       .then(() => {
         toast.success("✅ Message sent! We'll get back to you within 24 hours.", {
-          position: "top-center",
-          autoClose: 5000,
+          position: "top-right",
+          duration: 5000,
         });
         setFormData({ name: "", phone: "", email: "", vehicle: "", service: "", message: "" });
         setFormErrors({ phone: "", email: "" });
@@ -77,8 +76,8 @@ export default function ContactSection() {
       .catch((err) => {
         console.error("EmailJS Error:", err);
         toast.error("❌ Failed to send. Please try again or call us directly.", {
-          position: "top-center",
-          autoClose: 5000,
+          position: "top-right",
+          duration: 5000,
         });
       })
       .finally(() => {
@@ -88,6 +87,7 @@ export default function ContactSection() {
 
   return (
     <section className="py-16 bg-[#F3F6F4] overflow-x-hidden">
+      <Toaster position="top-right" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-12">
           {/* FORM */}
