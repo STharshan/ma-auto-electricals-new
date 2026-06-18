@@ -66,6 +66,7 @@ const loginUser = async (req, res) => {
         res.json({ success: true, message: "User logged in successfully", role: user.role });
 
     } catch (error) {
+        console.error("Failed to login user:", error);
         res.status(500).json({ success: false, message: "Failed to login user" });
     }
 }
@@ -119,8 +120,8 @@ const registerUser = async (req, res) => {
         res.json({ success: true, message: "User registered successfully", role: user.role });
 
     } catch (error) {
-       
-        res.json({ success: false, message: "Failed to register user" });
+        console.error("Failed to register user:", error);
+        res.status(500).json({ success: false, message: "Failed to register user" });
     }
 }
 
@@ -162,6 +163,7 @@ const checkTokenCorrect = async (req, res) => {
         });
 
     } catch (error) {
+        console.error("Token validation failed:", error);
         return res.status(401).json({
             success: false,
             message: "Invalid or Expired Token"

@@ -388,7 +388,7 @@ export const createCheckoutSession = async (req, res) => {
 
     res.json({ url: session.url });
   } catch (error) {
-   
+    console.error("Stripe checkout session creation failed:", error);
     res.status(500).json({ error: "Stripe checkout failed" });
   }
 };
@@ -401,7 +401,7 @@ export const stripeWebhook = async (req, res) => {
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, WEBHOOK_SECRET);
   } catch (err) {
-   
+    console.error("Stripe webhook signature validation failed:", err);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
@@ -440,7 +440,7 @@ export const checkoutSuccess = async (req, res) => {
 
     res.json({ success: true, order: buildPublicOrderResponse(order) });
   } catch (err) {
-   
+    console.error("Checkout success lookup failed:", err);
     res.status(400).json({ error: err.message });
   }
 };
@@ -519,7 +519,7 @@ async function handleCheckoutCompleted(stripeSession, req) {
   } catch (err) {
     await session.abortTransaction();
     session.endSession();
-  
+    console.error("Checkout completion persistence failed:", err);
     throw err;
   }
 }

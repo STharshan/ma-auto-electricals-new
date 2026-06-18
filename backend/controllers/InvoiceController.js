@@ -9,6 +9,7 @@ export const getAllCategories = async (req, res) => {
       data: categories.sort()
     });
   } catch (error) {
+    console.error("Error fetching invoice categories:", error);
     res.status(500).json({
       success: false,
       message: 'Error fetching categories',
@@ -27,6 +28,7 @@ export const getServicesByCategory = async (req, res) => {
       data: services
     });
   } catch (error) {
+    console.error("Error fetching services by category:", error);
     res.status(500).json({
       success: false,
       message: 'Error fetching services',
@@ -45,6 +47,7 @@ export const getAllServices = async (req, res) => {
       data: services
     });
   } catch (error) {
+    console.error("Error fetching all services:", error);
     res.status(500).json({
       success: false,
       message: 'Error fetching services',
@@ -71,6 +74,7 @@ export const getServiceById = async (req, res) => {
       data: service
     });
   } catch (error) {
+    console.error("Error fetching service by ID:", error);
     res.status(500).json({
       success: false,
       message: 'Error fetching service',
@@ -95,6 +99,7 @@ export const createService = async (req, res) => {
       message: 'Service created successfully'
     });
   } catch (error) {
+    console.error("Error creating service:", error);
     res.status(500).json({
       success: false,
       message: 'Error creating service',
@@ -128,6 +133,7 @@ export const updateService = async (req, res) => {
       message: 'Service updated successfully'
     });
   } catch (error) {
+    console.error("Error updating service:", error);
     res.status(500).json({
       success: false,
       message: 'Error updating service',
@@ -154,6 +160,7 @@ export const deleteService = async (req, res) => {
       message: 'Service deleted successfully'
     });
   } catch (error) {
+    console.error("Error deleting service:", error);
     res.status(500).json({
       success: false,
       message: 'Error deleting service',

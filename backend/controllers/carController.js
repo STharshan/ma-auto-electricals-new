@@ -2,6 +2,17 @@ import carModel from "../models/CarModel.js";
 import fs from "fs";
 import path from "path";
 
+const parseJsonArrayField = (value, fieldName) => {
+  if (!value) return [];
+
+  try {
+    return JSON.parse(value);
+  } catch (error) {
+    console.error(`Invalid JSON provided for ${fieldName}:`, error);
+    throw new Error(`Invalid ${fieldName} data`);
+  }
+};
+
 // CREATE car
 export const createCar = async (req, res) => {
   try {
@@ -11,10 +22,8 @@ export const createCar = async (req, res) => {
 
     const images = req.files.map((file) => file.filename);
 
-    let features = [];
-    let bonnetData = [];
-    try { features   = JSON.parse(req.body.features   || "[]"); } catch {}
-    try { bonnetData = JSON.parse(req.body.bonnetData || "[]"); } catch {}
+    const features = parseJsonArrayField(req.body.features || "[]", "features");
+    const bonnetData = parseJsonArrayField(req.body.bonnetData || "[]", "bonnetData");
 
     const car = new carModel({
       name:           req.body.name,
@@ -40,7 +49,7 @@ export const createCar = async (req, res) => {
     await car.save();
     res.json({ success: true, message: "Car added successfully" });
   } catch (error) {
-  
+    console.error("Failed to create car:", error);
     res.status(500).json({ success: false, message: "Failed to add car" });
   }
 };
@@ -51,6 +60,7 @@ export const getCars = async (req, res) => {
     const cars = await carModel.find();
     res.status(200).json(cars);
   } catch (error) {
+    console.error("Failed to fetch cars:", error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -62,6 +72,7 @@ export const getCarById = async (req, res) => {
     if (!car) return res.status(404).json({ error: "Car not found" });
     res.status(200).json(car);
   } catch (error) {
+    console.error("Failed to fetch car by ID:", error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -100,10 +111,10 @@ export const updateCar = async (req, res) => {
     }
 
     if (req.body.features) {
-      try { car.features = JSON.parse(req.body.features); } catch {}
+      car.features = parseJsonArrayField(req.body.features, "features");
     }
     if (req.body.bonnetData) {
-      try { car.bonnetData = JSON.parse(req.body.bonnetData); } catch {}
+      car.bonnetData = parseJsonArrayField(req.body.bonnetData, "bonnetData");
     }
 
     // 1. Remove deleted images from disk
@@ -137,7 +148,7 @@ export const updateCar = async (req, res) => {
     await car.save();
     res.status(200).json({ success: true, message: "Car updated successfully", data: car });
   } catch (err) {
-   
+    console.error("Failed to update car:", err);
     res.status(400).json({ success: false, message: err.message });
   }
 };
@@ -149,6 +160,7 @@ export const deleteCar = async (req, res) => {
     if (!deletedCar) return res.status(404).json({ error: "Car not found" });
     res.status(200).json({ message: "Car deleted successfully" });
   } catch (error) {
+    console.error("Failed to delete car:", error);
     res.status(500).json({ error: error.message });
   }
 };

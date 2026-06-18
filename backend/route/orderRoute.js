@@ -11,8 +11,9 @@ orderRouter.get("/", authMiddleware, requireAdmin, async (req, res) => {
   try {
     const orders = await OrderModel.find().sort({ createdAt: -1 });
     res.json(orders);
-  } catch {
-    res.status(500).json({ error: "Server error" });
+  } catch (error) {
+    console.error("Failed to fetch orders:", error);
+    res.status(500).json({ error: "Failed to fetch orders" });
   }
 });
 
@@ -40,6 +41,7 @@ orderRouter.post("/:orderId/admin-cancel", authMiddleware, requireAdmin, async (
 
     res.json({ success: true, message: "Order cancelled. Customer notified." });
   } catch (err) {
+    console.error("Failed to cancel order:", err);
     res.status(500).json({ error: err.message || "Server error" });
   }
 });
@@ -66,6 +68,7 @@ orderRouter.post("/:orderId/admin-restore", authMiddleware, requireAdmin, async 
 
     res.json({ success: true, message: "Order restored. Customer notified." });
   } catch (err) {
+    console.error("Failed to restore order:", err);
     res.status(500).json({ error: err.message || "Server error" });
   }
 });
