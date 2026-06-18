@@ -21,20 +21,39 @@ const resolveRoleForEmail = (email) => {
     return getAdminEmails().includes(email.trim().toLowerCase()) ? "admin" : "user";
 };
 
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 
 // login user
 const loginUser = async (req, res) => {
     const { email, password } = req.body;
 
     try {
-        const user = await userModel.findOne({ email });
+        if (!email || !password) {
+            return res.status(400).json({
+                success: false,
+                message: "Email and password are required"
+            });
+        }
+
+        if (!validator.isEmail(String(email))) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid email format"
+            });
+        }
+
+        const normalizedEmail = String(email).trim();
+        const user = await userModel.findOne({
+            email: { $regex: `^${escapeRegex(normalizedEmail)}$`, $options: "i" }
+        });
         if (!user) {
-            return res.json({ success: false, message: "User Doesn't exist" });
+            return res.status(401).json({ success: false, message: "Invalid credentials" });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            return res.json({ success: false, message: "Invalid credentials" });
+            return res.status(401).json({ success: false, message: "Invalid credentials" });
         }
 
         if (!user.role) {
@@ -47,8 +66,7 @@ const loginUser = async (req, res) => {
         res.json({ success: true, message: "User logged in successfully", role: user.role });
 
     } catch (error) {
-      
-        res.json({ success: false, message: "Failed to login user" });
+        res.status(500).json({ success: false, message: "Failed to login user" });
     }
 }
 

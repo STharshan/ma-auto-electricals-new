@@ -34,10 +34,6 @@ const authMiddleware = async (req, res, next) => {
 
         req.user = user;
         req.userId = user._id.toString();
-
-        if (req.body && typeof req.body === "object") {
-            req.body.userId = req.userId;
-        }
         
         next();
     } catch (error) {

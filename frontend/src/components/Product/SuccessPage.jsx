@@ -14,13 +14,18 @@ import toast, { Toaster } from "react-hot-toast";
 export default function SuccessPage() {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchOrder = async () => {
       const session_id = searchParams.get("session_id");
-      if (!session_id) return;
+      if (!session_id) {
+        setErrorMessage("Missing payment session. Please return to the shop and complete checkout again.");
+        setLoading(false);
+        return;
+      }
 
       try {
         const API_URL = import.meta.env.VITE_API_URL;
@@ -31,6 +36,7 @@ export default function SuccessPage() {
 
         if (data.success) {
           setOrder(data.order);
+          setErrorMessage("");
 
           // CLEAR CART AFTER SUCCESS
           localStorage.removeItem("cart");
@@ -39,11 +45,15 @@ export default function SuccessPage() {
           window.dispatchEvent(new Event("storage"));
 
           toast.success("Order confirmed!");
+        } else {
+          setErrorMessage(
+            data.error || "We couldn't verify this payment session. Please contact support if you've already been charged."
+          );
         }
 
         setLoading(false);
       } catch {
-       
+        setErrorMessage("Failed to fetch order details. Please try again or contact support.");
         setLoading(false);
         toast.error("Failed to fetch order.");
       }
@@ -96,7 +106,8 @@ export default function SuccessPage() {
           </div>
           <h2 className="text-2xl md:text-3xl font-bold text-gray-800">Order Not Found</h2>
           <p className="text-gray-600 text-sm md:text-base">
-            We couldn't find your order. This might be due to an invalid session or the order might have expired.
+            {errorMessage ||
+              "We couldn't find your order. This might be due to an invalid session or the order might have expired."}
           </p>
           <button
             onClick={() => navigate("/product")}

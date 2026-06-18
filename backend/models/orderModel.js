@@ -2,9 +2,10 @@ import mongoose from "mongoose";
 import { v4 as uuidv4 } from "uuid";
 
 const productSchema = new mongoose.Schema({
-  _id: { type: String, required: true },
+  _id: { type: mongoose.Schema.Types.ObjectId, ref: "product", required: true },
   name: { type: String, required: true },
   description: { type: String },
+  // Snapshot fields preserve product details at the time of purchase.
   price: { type: Number, required: true },
   quantity: { type: Number, required: true },
   images: [{ type: String }],
