@@ -30,7 +30,9 @@ const EditProduct = ({ url, existingData, onSuccess, onClose }) => {
       try {
         const res = await axios.get(`${url}/api/products/categories`);
         if (res.data.success) setCategories(res.data.categories);
-      } catch (err) {}
+      } catch {
+        // Categories are optional here; the editor can still work without preloading them.
+      }
     };
     fetchCategories();
   }, [url]);
@@ -114,11 +116,9 @@ const EditProduct = ({ url, existingData, onSuccess, onClose }) => {
       images.forEach(img => {
         if (img instanceof File) data.append("images", img);
       });
-      const token = localStorage.getItem("token");
       const res = await axios.put(`${url}/api/products/${existingData._id}`, data, {
         headers: { 
           "Content-Type": "multipart/form-data",
-          "Authorization": `Bearer ${token}` 
         },
       });
       if (res.data.success) {
@@ -128,7 +128,7 @@ const EditProduct = ({ url, existingData, onSuccess, onClose }) => {
       } else {
         toast.error(res.data.message);
       }
-    } catch (err) {
+    } catch {
       toast.error("Failed to update product");
     }
   };

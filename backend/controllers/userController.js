@@ -2,6 +2,24 @@ import userModel from "../models/userModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import validator from "validator";
+import {
+    clearAuthCookie,
+    readAuthTokenFromCookies,
+    setAuthCookie,
+} from "../utils/authCookie.js";
+
+const getAdminEmails = () => {
+    return [
+        process.env.ADMIN_EMAIL,
+        ...(process.env.ADMIN_EMAILS?.split(",") || [])
+    ]
+        .map((email) => email?.trim().toLowerCase())
+        .filter(Boolean);
+};
+
+const resolveRoleForEmail = (email) => {
+    return getAdminEmails().includes(email.trim().toLowerCase()) ? "admin" : "user";
+};
 
 
 // login user
@@ -19,8 +37,14 @@ const loginUser = async (req, res) => {
             return res.json({ success: false, message: "Invalid credentials" });
         }
 
+        if (!user.role) {
+            user.role = resolveRoleForEmail(user.email);
+            await user.save();
+        }
+
         const token = createToken(user._id);
-        res.json({ success: true, message: "User logged in successfully", token });
+        setAuthCookie(res, token);
+        res.json({ success: true, message: "User logged in successfully", role: user.role });
 
     } catch (error) {
       
@@ -67,12 +91,14 @@ const registerUser = async (req, res) => {
         const newUser = new userModel({
             name: name,
             email: email,
-            password: hashedPassword
+            password: hashedPassword,
+            role: resolveRoleForEmail(email)
         });
 
         const user = await newUser.save();
         const token = createToken(user._id);
-        res.json({ success: true, message: "User registered successfully", token });
+        setAuthCookie(res, token);
+        res.json({ success: true, message: "User registered successfully", role: user.role });
 
     } catch (error) {
        
@@ -82,15 +108,15 @@ const registerUser = async (req, res) => {
 
 const checkTokenCorrect = async (req, res) => {
     const authHeader = req.headers.authorization;
+    const cookieToken = readAuthTokenFromCookies(req);
+    const token = authHeader?.split(" ")[1] || cookieToken;
 
-    if (!authHeader) {
+    if (!token) {
         return res.status(401).json({
             success: false,
             message: "No token provided"
         });
     }
-
-    const token = authHeader.split(" ")[1];
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -104,11 +130,17 @@ const checkTokenCorrect = async (req, res) => {
             });
         }
 
+        if (!user.role) {
+            user.role = resolveRoleForEmail(user.email);
+            await user.save();
+        }
+
         return res.status(200).json({
             success: true,
             message: "Token valid",
             userId: user._id,
-            userName: user.name
+            userName: user.name,
+            role: user.role
         });
 
     } catch (error) {
@@ -119,4 +151,12 @@ const checkTokenCorrect = async (req, res) => {
     }
 };
 
-export { loginUser, registerUser, checkTokenCorrect };
+const logoutUser = async (req, res) => {
+    clearAuthCookie(res);
+    return res.status(200).json({
+        success: true,
+        message: "Logged out successfully"
+    });
+};
+
+export { loginUser, registerUser, checkTokenCorrect, logoutUser };

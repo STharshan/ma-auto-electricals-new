@@ -9,6 +9,20 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const FRONTEND_URL = process.env.CLIENT_URL;
 const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
 
+function buildPublicOrderResponse(order) {
+  return {
+    orderId: order.orderId,
+    items: order.products.map((item) => ({
+      _id: item._id,
+      name: item.name,
+      price: item.price,
+      quantity: item.quantity,
+    })),
+    amount: order.amount,
+    status: order.payment_status,
+  };
+}
+
 // ─── EMAIL TEMPLATES ────────────────────────────────────────────────────────
 
 function buildProductRows(products) {
@@ -290,33 +304,72 @@ export const createCheckoutSession = async (req, res) => {
     const phone = userDetails.phone || "";
     const address = userDetails.address || "";
 
+    const productIds = [...new Set(cart.map((item) => String(item._id)))];
+    const products = await productModel.find({ _id: { $in: productIds } });
+    const productMap = new Map(products.map((product) => [String(product._id), product]));
+
+    if (products.length !== productIds.length) {
+      return res.status(404).json({ error: "One or more products were not found" });
+    }
+
+    const normalizedCart = [];
+
     for (const item of cart) {
-      const product = await productModel.findById(item._id);
+      const product = productMap.get(String(item._id));
       if (!product) {
-        return res.status(404).json({ error: `Product not found: ${item.name}` });
+        return res.status(404).json({ error: `Product not found: ${item.name || item._id}` });
       }
-      if (item.quantity > product.count) {
+
+      const quantity = Number(item.quantity);
+      if (!Number.isInteger(quantity) || quantity <= 0) {
         return res.status(400).json({
-          error: `Only ${product.count} item(s) available for ${item.name}`,
+          error: `Invalid quantity provided for ${product.name}`,
+          productId: product._id,
+        });
+      }
+
+      if (quantity > product.count) {
+        return res.status(400).json({
+          error: `Only ${product.count} item(s) available for ${product.name}`,
           availableStock: product.count,
           productId: product._id,
         });
       }
+
+      const clientPriceProvided = item.price !== undefined && item.price !== null;
+      const clientPrice = Number(item.price);
+      if (
+        clientPriceProvided &&
+        (!Number.isFinite(clientPrice) || clientPrice !== Number(product.price))
+      ) {
+        return res.status(400).json({
+          error: `Price mismatch detected for ${product.name}`,
+          productId: product._id,
+        });
+      }
+
+      normalizedCart.push({
+        _id: product._id,
+        name: product.name,
+        description: product.description,
+        price: Number(product.price),
+        quantity,
+      });
     }
 
-    const line_items = cart.map((item) => ({
+    const line_items = normalizedCart.map((item) => ({
       price_data: {
         currency: "gbp",
         product_data: {
           name: item.name,
           description: item.description?.substring(0, 200),
         },
-        unit_amount: Math.round(Number(item.price) * 100),
+        unit_amount: Math.round(item.price * 100),
       },
       quantity: item.quantity,
     }));
 
-    const compactCart = cart.map((item) => ({
+    const compactCart = normalizedCart.map((item) => ({
       _id: item._id,
       name: item.name,
       price: item.price,
@@ -356,7 +409,8 @@ export const stripeWebhook = async (req, res) => {
     try {
       await handleCheckoutCompleted(event.data.object, req);
     } catch (err) {
-    
+      console.error("Stripe webhook failed to save completed checkout:", err);
+      return res.status(500).json({ error: "Webhook order persistence failed" });
     }
   }
 
@@ -384,7 +438,7 @@ export const checkoutSuccess = async (req, res) => {
       order = await handleCheckoutCompleted(stripeSession, req);
     }
 
-    res.json({ success: true, order });
+    res.json({ success: true, order: buildPublicOrderResponse(order) });
   } catch (err) {
    
     res.status(400).json({ error: err.message });

@@ -34,6 +34,7 @@ export default function Signup({ url }) {
       const res = await fetch(`${url}/api/user/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           name: formData.name,
           email: formData.email,
@@ -47,11 +48,11 @@ export default function Signup({ url }) {
 
       if (data.success) {
         toast.success(data.message);
-        navigate("/login");
+        navigate("/");
       } else {
         toast.error(data.message);
       }
-    } catch (error) {
+    } catch {
      
       toast.error("Something went wrong!");
     }

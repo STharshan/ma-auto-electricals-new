@@ -20,17 +20,21 @@ export default function Login({ url }) {
       const res = await fetch(`${url}/api/user/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(formData),
       });
       const data = await res.json();
       if (data.success) {
-        localStorage.setItem("token", data.token);
+        if (data.role !== "admin") {
+          toast.error("Admin access required.");
+          return;
+        }
         toast.success("Login successful!");
         navigate("/list/product");
       } else {
         toast.error(data.message);
       }
-    } catch (error) {
+    } catch {
       toast.error("Something went wrong!");
     } finally {
       setLoading(false);

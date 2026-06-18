@@ -22,6 +22,7 @@ import OrdersTable from "./pages/Order";
 
 import Login from "./components/Login";
 import Signup from "./components/Signup";
+import ProtectedRoute from "./components/ProtectedRoute";
 import InvoiceGenerator from "./pages/InvoicePage";
 import InvoiceDataPage from "./pages/InvoiceDataPage";
 
@@ -33,13 +34,10 @@ const AuthRoute = ({ children }) => {
 
   useEffect(() => {
     const verifyToken = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) { setIsValid(false); return; }
       try {
-        await axios.post(`${url}/api/user/checkTokenCorrect`, {}, { headers: { Authorization: `Bearer ${token}` } });
-        setIsValid(true);
-      } catch (err) {
-        localStorage.removeItem("token");
+        const response = await axios.post(`${url}/api/user/checkTokenCorrect`, {});
+        setIsValid(response.data.role === "admin");
+      } catch {
         setIsValid(false);
       }
     };
@@ -48,29 +46,6 @@ const AuthRoute = ({ children }) => {
 
   if (isValid === null) return null;
   return isValid ? <Navigate to="/list/product" replace /> : children;
-};
-
-/* ---------------- PROTECTED ROUTE ---------------- */
-const ProtectedRoute = () => {
-  const [isValid, setIsValid] = useState(null);
-
-  useEffect(() => {
-    const verifyToken = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) { setIsValid(false); return; }
-      try {
-        await axios.post(`${url}/api/user/checkTokenCorrect`, {}, { headers: { Authorization: `Bearer ${token}` } });
-        setIsValid(true);
-      } catch (err) {
-        localStorage.removeItem("token");
-        setIsValid(false);
-      }
-    };
-    verifyToken();
-  }, []);
-
-  if (isValid === null) return null;
-  return isValid ? <Outlet /> : <Navigate to="/" replace />;
 };
 
 /* ---------------- LAYOUT ---------------- */
@@ -103,17 +78,16 @@ const App = () => {
 
       <Routes>
         <Route path="/" element={<AuthRoute><Login url={url} /></AuthRoute>} />
+        <Route path="/signup" element={<AuthRoute><Signup url={url} /></AuthRoute>} />
 
-        <Route element={<ProtectedRoute />}>
-          <Route element={<Layout />}>
-            <Route path="/list/product" element={<ProductList url={url} />} />
-            <Route path="/list/car"     element={<CarList url={url} />} />
-            <Route path="/add/car"      element={<AddCar url={url} />} />
-            <Route path="/add/product"  element={<AddProduct url={url} />} />
-            <Route path="/list/order"   element={<OrdersTable url={url} />} />
-            <Route path="/invoice"      element={<InvoiceGenerator url={url} />} />
-            <Route path="/invoice-data" element={<InvoiceDataPage url={url} />} />
-          </Route>
+        <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+          <Route path="/list/product" element={<ProductList url={url} />} />
+          <Route path="/list/car"     element={<CarList url={url} />} />
+          <Route path="/add/car"      element={<AddCar url={url} />} />
+          <Route path="/add/product"  element={<AddProduct url={url} />} />
+          <Route path="/list/order"   element={<OrdersTable url={url} />} />
+          <Route path="/invoice"      element={<InvoiceGenerator url={url} />} />
+          <Route path="/invoice-data" element={<InvoiceDataPage url={url} />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

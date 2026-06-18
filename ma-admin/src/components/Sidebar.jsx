@@ -1,6 +1,7 @@
 import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Plus, List, Car, Package, LogOut, Package2, FileText, Database } from "lucide-react";
+import axios from "axios";
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -16,8 +17,9 @@ const Sidebar = () => {
   ];
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/");
+    axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/user/logout`)
+      .catch(() => {})
+      .finally(() => navigate("/"));
   };
 
   return (

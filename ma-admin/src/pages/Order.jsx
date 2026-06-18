@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import {
   User, Mail, Phone, MapPin, ShoppingCart, CreditCard,
@@ -23,30 +23,25 @@ export default function OrdersTable({ url }) {
   const [modal, setModal]                 = useState(null);
   const [cancelNote, setCancelNote]       = useState("");
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem("token");
-      const res = await axios.get(`${url}/api/orders`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await axios.get(`${url}/api/orders`);
       setOrders(Array.isArray(res.data) ? res.data : res.data.orders || []);
     } catch { setError("Failed to fetch orders."); }
     finally { setLoading(false); }
-  };
+  }, [url]);
 
-  useEffect(() => { fetchOrders(); }, [url]);
+  useEffect(() => { fetchOrders(); }, [fetchOrders]);
   useEffect(() => { setCurrentPage(1); }, [searchTerm, filterStatus]);
 
   const handleCancel = async () => {
     if (!cancelNote.trim()) return toast.error("Please enter a reason");
     setActionLoading(true);
     try {
-      const token = localStorage.getItem("token");
       const res = await axios.post(
         `${url}/api/orders/${modal.order.orderId}/admin-cancel`,
         { cancelNote },
-        { headers: { Authorization: `Bearer ${token}` } }
       );
       if (res.data.success) { toast.success("Order cancelled. Customer notified."); closeModal(); fetchOrders(); }
       else toast.error(res.data.message || "Failed");
@@ -57,11 +52,9 @@ export default function OrdersTable({ url }) {
   const handleRestore = async () => {
     setActionLoading(true);
     try {
-      const token = localStorage.getItem("token");
       const res = await axios.post(
         `${url}/api/orders/${modal.order.orderId}/admin-restore`,
         {},
-        { headers: { Authorization: `Bearer ${token}` } }
       );
       if (res.data.success) { toast.success("Order restored. Customer notified."); closeModal(); fetchOrders(); }
       else toast.error(res.data.message || "Failed");

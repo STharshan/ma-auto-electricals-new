@@ -55,7 +55,6 @@ const EditCar = ({ url, existingData, onSuccess }) => {
   // Each entry: { src: string (preview URL), raw: File | string (filename), isNew: bool }
   const [imageItems,   setImageItems]   = useState([]);
   const [removeImages, setRemoveImages] = useState([]);
-  const [primaryIdx,   setPrimaryIdx]   = useState(0); // index of the primary/first image
   const [features,     setFeatures]     = useState([""]);
   const [bonnetData,   setBonnetData]   = useState([]);
   const [loading,      setLoading]      = useState(false);
@@ -88,8 +87,6 @@ const EditCar = ({ url, existingData, onSuccess }) => {
       isNew: false,
     }));
     setImageItems(existing);
-    setPrimaryIdx(0);
-
     setFeatures(existingData.features?.length ? existingData.features : [""]);
     setBonnetData(
       existingData.bonnetData?.length
@@ -143,11 +140,6 @@ const EditCar = ({ url, existingData, onSuccess }) => {
     }
     setImageItems((prev) => prev.filter((_, i) => i !== idx));
     // Adjust primaryIdx if needed
-    setPrimaryIdx((prev) => {
-      if (idx === prev) return 0;
-      if (idx < prev)  return prev - 1;
-      return prev;
-    });
     clearError("images");
   };
 
@@ -159,7 +151,6 @@ const EditCar = ({ url, existingData, onSuccess }) => {
       updated.unshift(picked);
       return updated;
     });
-    setPrimaryIdx(0);
   };
 
   const addFeature    = () => setFeatures((prev) => [...prev, ""]);
@@ -205,13 +196,10 @@ const EditCar = ({ url, existingData, onSuccess }) => {
     imageItems
       .filter((item) => item.isNew)
       .forEach((item) => data.append("images", item.raw));
-     const token = localStorage.getItem("token");
-     
     try {
       const res = await axios.put(`${url}/api/cars/${existingData._id}`, data, {
   headers: { 
     "Content-Type": "multipart/form-data",
-    "Authorization": `Bearer ${token}` 
   },
 });
       if (res.data.success) {
@@ -220,7 +208,7 @@ const EditCar = ({ url, existingData, onSuccess }) => {
       } else {
         toast.error(res.data.message);
       }
-    } catch (err) {
+    } catch {
      
       toast.error("Failed to update car");
     } finally {

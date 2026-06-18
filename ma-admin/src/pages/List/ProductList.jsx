@@ -24,7 +24,7 @@ const ProductList = ({ url }) => {
       setLoading(true);
       const response = await axios.get(`${url}/api/products`);
       setList(response.data);
-    } catch (error) {
+    } catch {
       toast.error("Error fetching products");
     } finally {
       setLoading(false);
@@ -33,11 +33,8 @@ const ProductList = ({ url }) => {
 
   const removeProduct = async (productId) => {
     try {
-      const token = localStorage.getItem("token");
       setDeleteId(productId);
-      await axios.delete(`${url}/api/products/${productId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axios.delete(`${url}/api/products/${productId}`);
       toast.success("Product deleted successfully");
       fetchList();
       setProductToDelete(null);

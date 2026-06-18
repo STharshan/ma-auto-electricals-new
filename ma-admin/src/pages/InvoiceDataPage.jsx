@@ -28,7 +28,7 @@ const InvoiceAdmin = () => {
         try {
             const res = await axios.get(`${API_URL}/all`);
             setInvoices(res.data.data);
-        } catch (err) {
+        } catch {
             toast.error("Failed to load data");
         }
         setLoading(false);
@@ -52,22 +52,19 @@ const InvoiceAdmin = () => {
             return;
         }
 
-        const token = localStorage.getItem("token");
-        const headers = { Authorization: `Bearer ${token}` };
-
         try {
             if (isEditing) {
-                await axios.put(`${API_URL}/update/${isEditing}`, formData, { headers });
+                await axios.put(`${API_URL}/update/${isEditing}`, formData);
                 toast.success("Updated successfully!");
             } else {
-                await axios.post(`${API_URL}/create`, formData, { headers });
+                await axios.post(`${API_URL}/create`, formData);
                 toast.success("Added successfully!");
             }
             setFormData({ category: '', serviceName: '', price: '' });
             setIsEditing(null);
             setIsNewCategory(false);
             fetchInvoices();
-        } catch (err) {
+        } catch {
             toast.error("Operation failed!");
         }
     };
@@ -79,14 +76,11 @@ const InvoiceAdmin = () => {
 
     const handleDelete = async () => {
         try {
-            const token = localStorage.getItem("token");
-            await axios.delete(`${API_URL}/delete/${deleteId}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await axios.delete(`${API_URL}/delete/${deleteId}`);
             toast.info("Removed from inventory.");
             setShowModal(false);
             fetchInvoices();
-        } catch (err) {
+        } catch {
             toast.error("Error deleting record.");
         }
     };

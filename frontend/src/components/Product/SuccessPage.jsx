@@ -7,10 +7,6 @@ import {
   Loader2,
   AlertCircle,
   ArrowRight,
-  Calendar,
-  MapPin,
-  Mail,
-  Phone,
   CreditCard,
 } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
@@ -46,7 +42,7 @@ export default function SuccessPage() {
         }
 
         setLoading(false);
-      } catch (err) {
+      } catch {
        
         setLoading(false);
         toast.error("Failed to fetch order.");
@@ -133,7 +129,7 @@ export default function SuccessPage() {
             Payment Successful!
           </h1>
           <p className="text-gray-700 text-base md:text-lg">
-            Thank you, <span className="font-semibold text-green-600">{order.user}</span>! Your order has been confirmed.
+            Your order has been confirmed and is now being prepared.
           </p>
         </div>
 
@@ -147,44 +143,24 @@ export default function SuccessPage() {
           </div>
 
           <div className="p-6 md:p-8 space-y-6">
-            {/* Customer Info */}
-            {(order.email || order.phone || order.address) && (
-              <div className="bg-gray-50 rounded-xl p-4 md:p-6 space-y-3">
-                <h3 className="font-semibold text-gray-800 text-sm md:text-base mb-3">Customer Information</h3>
-                {order.email && (
-                  <div className="flex items-center gap-3 text-sm md:text-base">
-                    <Mail className="w-4 h-4 md:w-5 md:h-5 text-green-600 shrink-0" />
-                    <span className="text-gray-700 break-all">{order.email}</span>
-                  </div>
-                )}
-                {order.phone && (
-                  <div className="flex items-center gap-3 text-sm md:text-base">
-                    <Phone className="w-4 h-4 md:w-5 md:h-5 text-green-600 shrink-0" />
-                    <span className="text-gray-700">{order.phone}</span>
-                  </div>
-                )}
-                {order.address && (
-                  <div className="flex items-start gap-3 text-sm md:text-base">
-                    <MapPin className="w-4 h-4 md:w-5 md:h-5 text-green-600 shrink-0 mt-1" />
-                    <span className="text-gray-700">{order.address}</span>
-                  </div>
-                )}
-                {order.createdAt && (
-                  <div className="flex items-center gap-3 text-sm md:text-base">
-                    <Calendar className="w-4 h-4 md:w-5 md:h-5 text-green-600 shrink-0" />
-                    <span className="text-gray-700">
-                      {new Date(order.createdAt).toLocaleString("en-GB", {
-                        day: "2-digit",
-                        month: "long",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </span>
-                  </div>
-                )}
+            <div className="bg-gray-50 rounded-xl p-4 md:p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <p className="text-xs md:text-sm uppercase tracking-wide text-gray-500">
+                  Order ID
+                </p>
+                <p className="text-base md:text-lg font-semibold text-gray-800 break-all">
+                  #{order.orderId}
+                </p>
               </div>
-            )}
+              <div>
+                <p className="text-xs md:text-sm uppercase tracking-wide text-gray-500">
+                  Status
+                </p>
+                <p className="text-base md:text-lg font-semibold text-green-600 capitalize">
+                  {order.status}
+                </p>
+              </div>
+            </div>
 
             {/* Products */}
             <div className="space-y-3">
@@ -193,7 +169,7 @@ export default function SuccessPage() {
                 Items Ordered
               </h3>
               <div className="space-y-2">
-                {order.products.map((item, idx) => (
+                {order.items.map((item, idx) => (
                   <div
                     key={idx}
                     className="flex justify-between items-center p-3 md:p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors animate-slideInLeft"
@@ -219,11 +195,11 @@ export default function SuccessPage() {
               <span className="font-bold text-green-600 text-2xl md:text-3xl">£{order.amount}</span>
             </div>
 
-            {order.payment_status && (
+            {order.status && (
               <div className="flex items-center justify-center gap-2 p-3 bg-green-50 rounded-lg border border-green-200">
                 <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-green-600" />
                 <span className="text-sm md:text-base font-medium text-green-700 capitalize">
-                  Payment Status: {order.payment_status}
+                  Payment Status: {order.status}
                 </span>
               </div>
             )}

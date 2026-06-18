@@ -30,7 +30,7 @@ const AddProduct = ({ url }) => {
       try {
         const res = await axios.get(`${url}/api/products/categories`);
         if (res.data.success) setCategories(res.data.categories);
-      } catch (err) {
+      } catch {
         // silently fail, categories just won't pre-populate
       }
     };
@@ -97,14 +97,11 @@ const AddProduct = ({ url }) => {
     const data = new FormData();
     Object.keys(formData).forEach((key) => data.append(key, formData[key]));
     images.forEach((img) => data.append("images", img));
-    const token = localStorage.getItem("token");
-
     try {
       setLoading(true);
       const res = await axios.post(`${url}/api/products`, data, {
         headers: {
           "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
         },
       });
       if (res.data.success) {
@@ -115,7 +112,7 @@ const AddProduct = ({ url }) => {
       } else {
         toast.error(res.data.message || "Failed to add product");
       }
-    } catch (err) {
+    } catch {
       toast.error("Error uploading product");
     } finally {
       setLoading(false);
