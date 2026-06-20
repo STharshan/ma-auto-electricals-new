@@ -86,11 +86,13 @@ export const getServiceById = async (req, res) => {
 
 export const createService = async (req, res) => {
   try {
-    const { category, serviceName, price } = req.body;
+    const { category, serviceName, price, customer, order } = req.body;
     const service = await Invoice.create({
       category,
       serviceName,
-      price
+      price,
+      customer: customer || null,
+      order: order || null
     });
     
     res.status(201).json({
@@ -112,11 +114,17 @@ export const createService = async (req, res) => {
 export const updateService = async (req, res) => {
   try {
     const { serviceId } = req.params;
-    const { category, serviceName, price } = req.body;
+    const { category, serviceName, price, customer, order } = req.body;
     
     const service = await Invoice.findByIdAndUpdate(
       serviceId,
-      { category, serviceName, price },
+      {
+        category,
+        serviceName,
+        price,
+        customer: customer || null,
+        order: order || null
+      },
       { new: true, runValidators: true }
     );
     

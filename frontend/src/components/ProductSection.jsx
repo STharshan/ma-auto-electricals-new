@@ -72,7 +72,7 @@ export default function ProductSellers() {
                   
                   {/* Updated Arrow Button */}
                   <button 
-                    onClick={() => navigate(`/product`)}
+                    onClick={() => navigate(`/products/${product._id}`)}
                     className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-green-600 group-hover:text-white transition-all duration-300"
                     aria-label="View product details"
                   >

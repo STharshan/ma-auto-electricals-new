@@ -433,15 +433,16 @@ export const checkoutSuccess = async (req, res) => {
     }
 
     if (!order) {
-    
-      const stripeSession = await stripe.checkout.sessions.retrieve(session_id);
-      order = await handleCheckoutCompleted(stripeSession, req);
+      return res.status(404).json({
+        success: false,
+        error: "Order not found. Please wait a moment and refresh if your payment just completed.",
+      });
     }
 
     res.json({ success: true, order: buildPublicOrderResponse(order) });
   } catch (err) {
     console.error("Checkout success lookup failed:", err);
-    res.status(400).json({ error: err.message });
+    res.status(500).json({ success: false, error: "Failed to fetch order details" });
   }
 };
 

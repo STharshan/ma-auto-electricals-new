@@ -14,17 +14,34 @@ export default function ProductDetails() {
   const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
-    fetch(`${API_URL}/api/products/${id}`)
-      .then((res) => res.json())
-      .then((data) => {
+    const fetchProduct = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(`${API_URL}/api/products/${id}`);
+        const data = await res.json();
+
+        if (!res.ok) {
+          setProduct(null);
+          setErrorMessage(
+            res.status === 404
+              ? "Product not found."
+              : data?.error || "We couldn't load this product right now. Please try again later."
+          );
+          return;
+        }
+
         setProduct(data);
         setErrorMessage("");
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error("Failed to fetch product details:", err);
+        setProduct(null);
         setErrorMessage("We couldn't load this product right now. Please try again later.");
-      })
-      .finally(() => setLoading(false));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
   }, [id, API_URL]);
 
   useEffect(() => {
