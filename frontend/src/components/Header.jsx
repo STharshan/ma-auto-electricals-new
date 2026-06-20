@@ -8,6 +8,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
+import { CONTACT } from "../constants/contact";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -16,14 +17,14 @@ export default function Navbar() {
   const [cartCount, setCartCount] = useState(0);
 
   const navigate = useNavigate();
-  const waNumber = "447889133123";
-  const waHref = `https://wa.me/${waNumber}`;
-
   // Cart count-ai update seiyyum function
   const updateCount = () => {
     const cart = JSON.parse(localStorage.getItem("cart")) || [];
-    // Cart-la irukka moththa items count (Total quantity venum endal reduce use pannalam)
-    setCartCount(cart.length);
+    const totalQuantity = cart.reduce(
+      (sum, item) => sum + Math.max(1, Number(item.quantity) || 0),
+      0
+    );
+    setCartCount(totalQuantity);
   };
 
   useEffect(() => {
@@ -54,7 +55,7 @@ export default function Navbar() {
       items: [
         { title: "Mechanical Repairs (All)", link: "/mechanical" },
         { title: "Car Repairs & Servicing", link: "/car-repair" },
-        { title: "Brake Pads", link: "/BrakePads" },
+        { title: "Brake Pads", link: "/brake-pads" },
         { title: "MOT", link: "/mot" },
       ],
     },
@@ -62,18 +63,18 @@ export default function Navbar() {
       category: "Diagnostics & Electrical",
       items: [
         { title: "Vehicle Diagnostics", link: "/diagnostics" },
-        { title: "All Car Electrics", link: "/Car-Electrics" },
+        { title: "All Car Electrics", link: "/car-electrics" },
         { title: "ECU Repairs & Services", link: "/ecu-repair-services" },
-        { title: "Window Regulators", link: "/WindowRegulators" },
-        { title: "Wiper Motors", link: "/WiperMotors" },
+        { title: "Window Regulators", link: "/window-regulators" },
+        { title: "Wiper Motors", link: "/wiper-motors" },
         { title: "Central Door Motors", link: "/central-door-motors" },
       ],
     },
     {
       category: "Emissions & Engine Systems",
       items: [
-        { title: "EGR Services", link: "/EGR" },
-        { title: "AdBlue Services", link: "/AdBlue" },
+        { title: "EGR Services", link: "/egr-system" },
+        { title: "AdBlue Services", link: "/adblue" },
       ],
     },
     {
@@ -240,7 +241,7 @@ export default function Navbar() {
             <HashLink to="/contact" onClick={closeAll} className="block text-gray-300">Contact</HashLink>
 
             <a
-              href={waHref}
+              href={CONTACT.whatsappHref}
               target="_blank"
               rel="noreferrer"
               className="block text-center bg-emerald-500/10 text-emerald-400 py-3 rounded-lg"

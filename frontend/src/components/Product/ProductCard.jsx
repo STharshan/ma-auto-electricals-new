@@ -275,7 +275,13 @@ export default function ProductCard() {
     socket.on("updateProduct", fetchAll);
     socket.on("stockUpdated", fetchAll);
     socket.on("deleteProduct", fetchAll);
-    return () => socket.disconnect();
+    return () => {
+      socket.off("newProduct", fetchAll);
+      socket.off("updateProduct", fetchAll);
+      socket.off("stockUpdated", fetchAll);
+      socket.off("deleteProduct", fetchAll);
+      socket.disconnect();
+    };
   }, [API_URL, fetchAll]);
 
   // ── Reset to page 1 when filters/search/sort change ────────────────────────

@@ -143,7 +143,7 @@ export default function Service() {
                         "Supply and fitting of high-quality brake pads for maximum safety and stopping performance.",
                     icon: <Disc className="w-6 h-6 text-[#317F21]" />,
                     image: "/Break.jpeg",
-                    link: "/BrakePads",
+                    link: "/brake-pads",
                 },
                  {
                     id: 7,
@@ -175,7 +175,7 @@ export default function Service() {
                         "Complete electrical system inspection and repair including battery, alternator, and wiring.",
                     icon: <Zap className="w-6 h-6 text-[#317F21]" />,
                     image: "/electrics.jpeg",
-                    link: "/Car-Electrics",
+                    link: "/car-electrics",
                 },
                 {
                     id: 16,
@@ -193,7 +193,7 @@ export default function Service() {
                         "Repair and replacement of faulty electric window regulators to restore smooth operation.",
                     icon: <Sliders className="w-6 h-6 text-[#317F21]" />,
                     image: "/Window.jpg",
-                    link: "/WindowRegulators",
+                    link: "/window-regulators",
                 },
                  {
                     id: 13,
@@ -202,7 +202,7 @@ export default function Service() {
                         "Wiper motor repairs and replacements for clear visibility in all weather conditions.",
                     icon: <Wind className="w-6 h-6 text-[#317F21]" />,
                     image: "/Wiper.jpg",
-                    link: "/WiperMotors",
+                    link: "/wiper-motors",
                 },
                 {
                     id: 14,
@@ -225,7 +225,7 @@ export default function Service() {
                         "EGR diagnostics and cleaning to reduce emissions and restore optimal engine performance.",
                     icon: <Recycle className="w-6 h-6 text-[#317F21]" />,
                     image: "/EGR.jpg",
-                    link: "/EGR",
+                    link: "/egr-system",
                 },
                 {
                     id: 18,
@@ -234,7 +234,7 @@ export default function Service() {
                         "AdBlue system diagnostics and repairs for diesel vehicles to meet emissions standards.",
                     icon: <Droplets className="w-6 h-6 text-[#317F21]" />,
                     image: "/Adblue.jpg",
-                    link: "/AdBlue",
+                    link: "/adblue",
                 },
                
             ],

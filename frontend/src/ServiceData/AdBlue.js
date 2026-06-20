@@ -2,6 +2,7 @@ import {
   FaPhoneAlt,
   FaCar,
 } from "react-icons/fa";
+import { CONTACT, formatPhoneAction, formatPhoneCta } from "../constants/contact";
 
 
 
@@ -22,8 +23,8 @@ export const motHeroData = {
 
   buttons: {
     primary: {
-      text: "Call: +44 7889 133123",
-      href: "tel:+447889133123",
+      text: formatPhoneAction("Call"),
+      href: CONTACT.phoneHref,
       icon: FaPhoneAlt,
       bg: "#317F21",
       color: "#FFFFFF",
@@ -123,8 +124,8 @@ export const emergencyCtaData = {
 
   buttons: {
     call: {
-      text: "Call +44 7889 133123",
-      href: "tel:+447889133123",
+      text: formatPhoneCta("Call"),
+      href: CONTACT.phoneHref,
       icon: FaPhoneAlt,
     },
     book: {
@@ -133,3 +134,4 @@ export const emergencyCtaData = {
     },
   },
 };
+

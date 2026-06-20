@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { FaPhoneAlt } from "react-icons/fa";
+import { CONTACT, formatPhoneCta } from "../../constants/contact";
 
 const palette = {
   primary: "#3F8D3A",          // green background
@@ -36,7 +37,7 @@ export default function EmergencyCTA() {
           data-aos="zoom-in"
         >
           {/* Call Now Button */}
-          <a href="tel:+447889133123" className="inline-block">
+          <a href={CONTACT.phoneHref} className="inline-block">
             <button
               className="
                 inline-flex items-center justify-center gap-2 h-10 rounded-md px-6 font-semibold shadow
@@ -48,7 +49,7 @@ export default function EmergencyCTA() {
               }}
             >
               <FaPhoneAlt className="h-5 w-5" />
-              Call +44 7889 133123
+              {formatPhoneCta("Call")}
             </button>
           </a>
         </div>

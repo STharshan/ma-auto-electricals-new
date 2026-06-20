@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import emailjs from "@emailjs/browser";
 import toast from "react-hot-toast";
 import {
@@ -11,6 +11,7 @@ import {
   FaMapMarkerAlt,
   FaDirections,
 } from "react-icons/fa";
+import { CONTACT } from "../../constants/contact";
 
 const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
 const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
@@ -28,6 +29,22 @@ export default function ContactSection() {
 
   const [formErrors, setFormErrors] = useState({ phone: "", email: "" });
   const [loading, setLoading] = useState(false);
+  const [hasGdprConsent, setHasGdprConsent] = useState(false);
+
+  useEffect(() => {
+    const syncConsent = () => {
+      setHasGdprConsent(localStorage.getItem("gdprConsent") === "true");
+    };
+
+    syncConsent();
+    window.addEventListener("gdprConsentChanged", syncConsent);
+    window.addEventListener("storage", syncConsent);
+
+    return () => {
+      window.removeEventListener("gdprConsentChanged", syncConsent);
+      window.removeEventListener("storage", syncConsent);
+    };
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -39,6 +56,14 @@ export default function ContactSection() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    if (!hasGdprConsent) {
+      toast.error("Please accept the GDPR consent banner before sending your message.", {
+        position: "top-right",
+        duration: 5000,
+      });
+      return;
+    }
 
     let errors = { phone: "", email: "" };
     let hasError = false;
@@ -195,9 +220,9 @@ export default function ContactSection() {
 
               <button
                 onClick={handleSubmit}
-                disabled={loading}
+                disabled={loading || !hasGdprConsent}
                 className={`inline-flex items-center justify-center gap-2 h-10 w-full rounded-md font-semibold transition-all text-white ${
-                  loading
+                  loading || !hasGdprConsent
                     ? "bg-gray-400 cursor-not-allowed"
                     : "bg-[#2F7D33] hover:bg-[#266b2a] hover:shadow-md"
                 }`}
@@ -207,7 +232,9 @@ export default function ContactSection() {
               </button>
 
               <p className="text-xs text-gray-500">
-                * Required fields. We'll get back to you within 24 hours.
+                * Required fields. {!hasGdprConsent
+                  ? "Please accept the GDPR consent banner to enable this form."
+                  : "We'll get back to you within 24 hours."}
               </p>
             </div>
           </div>
@@ -234,13 +261,11 @@ export default function ContactSection() {
               icon={<FaMapMarkerAlt className="h-5 w-5" />}
             >
               <div className="space-y-1 mb-4">
-                <p className="font-semibold text-[#111827]">MA Auto Electrics</p>
-                <p className="text-sm text-gray-500">
-                  13 Laburnum Drive, Oswaldtwistle, Accrington BB5 3AW, United Kingdom
-                </p>
+                <p className="font-semibold text-[#111827]">{CONTACT.companyName}</p>
+                <p className="text-sm text-gray-500">{CONTACT.address.inline}</p>
               </div>
               <a
-                href="https://www.google.com/maps/place/M+A+Auto+Electrics/@53.7508303,-2.4371918,10.79z"
+                href={CONTACT.mapsPlaceUrl}
                 target="_blank"
                 rel="noopener noreferrer"
               >
