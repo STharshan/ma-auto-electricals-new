@@ -395,23 +395,52 @@ export const createCheckoutSession = async (req, res) => {
 
 export const stripeWebhook = async (req, res) => {
   const sig = req.headers["stripe-signature"];
- 
+  console.log("[Stripe webhook] Incoming request", {
+    hasSignature: Boolean(sig),
+    contentType: req.headers["content-type"],
+    bodyType: Buffer.isBuffer(req.body) ? "buffer" : typeof req.body,
+    bodyLength: Buffer.isBuffer(req.body) ? req.body.length : undefined,
+  });
 
   let event;
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, WEBHOOK_SECRET);
   } catch (err) {
-    console.error("Stripe webhook signature validation failed:", err);
+    console.error("[Stripe webhook] Signature validation failed:", {
+      message: err.message,
+      hasSignature: Boolean(sig),
+      webhookSecretConfigured: Boolean(WEBHOOK_SECRET),
+    });
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
+  console.log("[Stripe webhook] Event verified", {
+    eventId: event.id,
+    eventType: event.type,
+  });
+
   if (event.type === "checkout.session.completed") {
     try {
+      console.log("[Stripe webhook] Processing checkout.session.completed", {
+        sessionId: event.data.object?.id,
+        paymentStatus: event.data.object?.payment_status,
+        customerEmail: event.data.object?.customer_email,
+      });
       await handleCheckoutCompleted(event.data.object, req);
+      console.log("[Stripe webhook] Completed checkout persisted", {
+        sessionId: event.data.object?.id,
+      });
     } catch (err) {
-      console.error("Stripe webhook failed to save completed checkout:", err);
+      console.error("[Stripe webhook] Failed to save completed checkout:", {
+        sessionId: event.data.object?.id,
+        message: err.message,
+      });
       return res.status(500).json({ error: "Webhook order persistence failed" });
     }
+  } else {
+    console.log("[Stripe webhook] Event ignored", {
+      eventType: event.type,
+    });
   }
 
   res.json({ received: true });
@@ -464,8 +493,19 @@ async function handleCheckoutCompleted(stripeSession, req) {
     const metadata = stripeSession.metadata || {};
     const products = JSON.parse(metadata.cart || "[]");
 
+    console.log("[Stripe checkout] Persist start", {
+      sessionId: stripeSession.id,
+      paymentStatus: stripeSession.payment_status,
+      productCount: products.length,
+      customerEmail: metadata.email || stripeSession.customer_email,
+    });
+
     const exists = await orderModel.findOne({ stripeSessionId: stripeSession.id });
     if (exists) {
+      console.log("[Stripe checkout] Order already exists", {
+        sessionId: stripeSession.id,
+        orderId: exists.orderId,
+      });
       await session.endSession();
       return exists;
     }
@@ -500,6 +540,12 @@ async function handleCheckoutCompleted(stripeSession, req) {
     await session.commitTransaction();
     session.endSession();
 
+    console.log("[Stripe checkout] Order saved", {
+      sessionId: stripeSession.id,
+      orderId: order.orderId,
+      amount: order.amount,
+    });
+
     // Socket update
     if (req?.app) {
       const io = req.app.get("io");
@@ -528,7 +574,10 @@ async function handleCheckoutCompleted(stripeSession, req) {
   } catch (err) {
     await session.abortTransaction();
     session.endSession();
-    console.error("Checkout completion persistence failed:", err);
+    console.error("[Stripe checkout] Persistence failed:", {
+      sessionId: stripeSession?.id,
+      message: err.message,
+    });
     throw err;
   }
 }
