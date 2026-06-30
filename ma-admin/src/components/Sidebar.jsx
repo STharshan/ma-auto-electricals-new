@@ -2,9 +2,11 @@ import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Plus, List, Car, Package, LogOut, Package2, FileText, Database } from "lucide-react";
 import axios from "axios";
+import useAuth from "../hooks/useAuth";
 
 const Sidebar = () => {
   const navigate = useNavigate();
+  const { clearAuthState } = useAuth();
 
   const menuItems = [
     { to: "/add/product",   icon: <Plus size={20} />,     label: "Add Product"   },
@@ -19,7 +21,10 @@ const Sidebar = () => {
   const handleLogout = () => {
     axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/user/logout`)
       .catch(() => {})
-      .finally(() => navigate("/"));
+      .finally(() => {
+        clearAuthState();
+        navigate("/");
+      });
   };
 
   return (

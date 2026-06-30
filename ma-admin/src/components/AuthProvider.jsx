@@ -35,14 +35,26 @@ export default function AuthProvider({ children }) {
     return verifyPromiseRef.current;
   }, []);
 
+  const setAuthenticated = useCallback((role) => {
+    setStatus(role === "admin" ? "authenticated" : "unauthenticated");
+    setUserRole(role === "admin" ? role : null);
+  }, []);
+
+  const clearAuthState = useCallback(() => {
+    setStatus("unauthenticated");
+    setUserRole(null);
+  }, []);
+
   const value = useMemo(
     () => ({
       status,
       userRole,
       verifyAuth,
+      setAuthenticated,
+      clearAuthState,
       isAuthenticated: status === "authenticated",
     }),
-    [status, userRole, verifyAuth]
+    [status, userRole, verifyAuth, setAuthenticated, clearAuthState]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

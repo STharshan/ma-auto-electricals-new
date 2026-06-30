@@ -433,6 +433,14 @@ export const checkoutSuccess = async (req, res) => {
     }
 
     if (!order) {
+      const stripeSession = await stripe.checkout.sessions.retrieve(session_id);
+
+      if (stripeSession.payment_status === "paid") {
+        order = await handleCheckoutCompleted(stripeSession, req);
+      }
+    }
+
+    if (!order) {
       return res.status(404).json({
         success: false,
         error: "Order not found. Please wait a moment and refresh if your payment just completed.",

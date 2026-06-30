@@ -2,12 +2,14 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Eye, EyeOff, Zap, Shield } from "lucide-react";
+import useAuth from "../hooks/useAuth";
 
 export default function Login({ url }) {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { setAuthenticated, clearAuthState } = useAuth();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -26,15 +28,19 @@ export default function Login({ url }) {
       const data = await res.json();
       if (data.success) {
         if (data.role !== "admin") {
+          clearAuthState();
           toast.error("Admin access required.");
           return;
         }
+        setAuthenticated(data.role);
         toast.success("Login successful!");
         navigate("/list/product");
       } else {
+        clearAuthState();
         toast.error(data.message);
       }
     } catch {
+      clearAuthState();
       toast.error("Something went wrong!");
     } finally {
       setLoading(false);
