@@ -2,12 +2,14 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Eye, EyeOff, Zap, Shield } from "lucide-react";
+import useAuth from "../hooks/useAuth";
 
 export default function Login({ url }) {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { setAuthenticated } = useAuth();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -20,13 +22,16 @@ export default function Login({ url }) {
       const res = await fetch(`${url}/api/user/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(formData),
       });
       const data = await res.json();
-      if (data.success) {
-        localStorage.setItem("token", data.token);
+      if (data.success && data.role === "admin") {
+        setAuthenticated(data.role);
         toast.success("Login successful!");
         navigate("/list/product");
+      } else if (data.success) {
+        toast.error("This account does not have admin access.");
       } else {
         toast.error(data.message);
       }
