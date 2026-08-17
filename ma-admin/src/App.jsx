@@ -1,18 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import {
   Routes,
   Route,
   BrowserRouter,
   Navigate,
-  Outlet,
 } from "react-router-dom";
 
-import axios from "axios";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
-import Sidebar from "./components/Sidebar";
-import Navbar from "./components/Navbar";
 
 import CarList from "./pages/List/CarList";
 import ProductList from "./pages/List/ProductList";
@@ -22,90 +17,51 @@ import OrdersTable from "./pages/Order";
 
 import Login from "./components/Login";
 import Signup from "./components/Signup";
+import AuthLayout from "./components/AuthLayout";
+import AuthProvider from "./components/AuthProvider";
 import InvoiceGenerator from "./pages/InvoicePage";
 import InvoiceDataPage from "./pages/InvoiceDataPage";
+import useAuth from "./hooks/useAuth";
 
 const url = import.meta.env.VITE_BACKEND_URL;
 
 /* ---------------- AUTH ROUTE ---------------- */
 const AuthRoute = ({ children }) => {
-  const [isValid, setIsValid] = useState(null);
+  const { status, isAuthenticated, verifyAuth } = useAuth();
 
   useEffect(() => {
-    const verifyToken = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) { setIsValid(false); return; }
-      try {
-        await axios.post(`${url}/api/user/checkTokenCorrect`, {}, { headers: { Authorization: `Bearer ${token}` } });
-        setIsValid(true);
-      } catch (err) {
-        localStorage.removeItem("token");
-        setIsValid(false);
-      }
-    };
-    verifyToken();
-  }, []);
+    if (status === "idle") {
+      verifyAuth();
+    }
+  }, [status, verifyAuth]);
 
-  if (isValid === null) return null;
-  return isValid ? <Navigate to="/list/product" replace /> : children;
+  if (status === "idle" || status === "loading") return null;
+  return isAuthenticated ? <Navigate to="/list/product" replace /> : children;
 };
-
-/* ---------------- PROTECTED ROUTE ---------------- */
-const ProtectedRoute = () => {
-  const [isValid, setIsValid] = useState(null);
-
-  useEffect(() => {
-    const verifyToken = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) { setIsValid(false); return; }
-      try {
-        await axios.post(`${url}/api/user/checkTokenCorrect`, {}, { headers: { Authorization: `Bearer ${token}` } });
-        setIsValid(true);
-      } catch (err) {
-        localStorage.removeItem("token");
-        setIsValid(false);
-      }
-    };
-    verifyToken();
-  }, []);
-
-  if (isValid === null) return null;
-  return isValid ? <Outlet /> : <Navigate to="/" replace />;
-};
-
-/* ---------------- LAYOUT ---------------- */
-const Layout = () => (
-  <div className="flex min-h-screen">
-    <Sidebar />
-    <div className="flex-1 bg-slate-50 p-4 md:p-8 overflow-auto min-w-0">
-      <Navbar />
-      <Outlet />
-    </div>
-  </div>
-);
 
 /* ---------------- APP ---------------- */
 const App = () => {
   return (
-    <BrowserRouter>
-      {/* Toast with high z-index so it's never blocked by navbar/sidebar */}
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        style={{ zIndex: 99999 }}
-      />
+    <AuthProvider>
+      <BrowserRouter>
+        {/* Toast with high z-index so it's never blocked by navbar/sidebar */}
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop
+          closeOnClick
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          style={{ zIndex: 99999 }}
+        />
 
-      <Routes>
-        <Route path="/" element={<AuthRoute><Login url={url} /></AuthRoute>} />
+        <Routes>
+          <Route path="/" element={<AuthRoute><Login url={url} /></AuthRoute>} />
+          <Route path="/signup" element={<AuthRoute><Signup url={url} /></AuthRoute>} />
 
-        <Route element={<ProtectedRoute />}>
-          <Route element={<Layout />}>
+          <Route element={<AuthLayout />}>
             <Route path="/list/product" element={<ProductList url={url} />} />
             <Route path="/list/car"     element={<CarList url={url} />} />
             <Route path="/add/car"      element={<AddCar url={url} />} />
@@ -114,11 +70,11 @@ const App = () => {
             <Route path="/invoice"      element={<InvoiceGenerator url={url} />} />
             <Route path="/invoice-data" element={<InvoiceDataPage url={url} />} />
           </Route>
-        </Route>
 
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 };
 

@@ -1,21 +1,47 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ShoppingCart, ArrowLeft } from "lucide-react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 
 export default function ProductDetails() {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
   const [inCart, setInCart] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
 
   const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
-    fetch(`${API_URL}/api/products/${id}`)
-      .then((res) => res.json())
-      .then((data) => setProduct(data))
-      .catch((err) => console.error(err));
+    const fetchProduct = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(`${API_URL}/api/products/${id}`);
+        const data = await res.json();
+
+        if (!res.ok) {
+          setProduct(null);
+          setErrorMessage(
+            res.status === 404
+              ? "Product not found."
+              : data?.error || "We couldn't load this product right now. Please try again later."
+          );
+          return;
+        }
+
+        setProduct(data);
+        setErrorMessage("");
+      } catch (err) {
+        console.error("Failed to fetch product details:", err);
+        setProduct(null);
+        setErrorMessage("We couldn't load this product right now. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
   }, [id, API_URL]);
 
   useEffect(() => {
@@ -23,12 +49,29 @@ export default function ProductDetails() {
     setInCart(cart.some((item) => item._id === id));
   }, [id]);
 
-  if (!product)
+  if (loading)
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-20">
         <div className="flex flex-col items-center">
           <div className="w-16 h-16 border-4 border-t-[#317F21] border-gray-200 rounded-full animate-spin mb-4"></div>
           <p className="text-gray-600 text-lg font-medium">Loading product...</p>
+        </div>
+      </div>
+    );
+
+  if (!product)
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-20 px-4">
+        <div className="flex flex-col items-center text-center gap-3">
+          <p className="text-gray-700 text-lg font-medium">
+            {errorMessage || "Product not found."}
+          </p>
+          <button
+            onClick={() => navigate("/product")}
+            className="text-[#317F21] font-semibold hover:underline"
+          >
+            Back to Products
+          </button>
         </div>
       </div>
     );
@@ -51,7 +94,6 @@ export default function ProductDetails() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6 py-20">
-      <Toaster position="top-right" />
       <div className="max-w-5xl mx-auto">
         <button
           onClick={() => navigate(-1)}

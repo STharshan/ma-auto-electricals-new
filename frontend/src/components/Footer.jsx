@@ -2,11 +2,9 @@ import React from "react";
 import { Facebook } from "lucide-react";
 import { Link } from "react-router-dom";
 import { HashLink } from "react-router-hash-link";
+import { CONTACT } from "../constants/contact";
 
 export default function Footer() {
-  const mapsUrl =
-    "https://www.google.com/maps/search/?api=1&query=13+laburnum+drive+oswaldtwistle+accrington+bb5+3aw";
-
   return (
     <footer className="bg-gray-900 border-t border-gray-800 py-12">
       <div className="container mx-auto px-4 md:px-12">
@@ -17,7 +15,7 @@ export default function Footer() {
             <div className="flex items-center space-x-3">
               <img
                 src="/logo.png"
-                alt="MA Auto Electrics"
+                alt={CONTACT.companyName}
                 className="h-12 w-auto object-contain"
                 loading="lazy"
               />
@@ -79,32 +77,32 @@ export default function Footer() {
           <div>
             <h3 className="font-bold mb-4 text-[#317F21]">Contact Info</h3>
             <ul className="space-y-2 text-gray-400">
-              <li>MA Auto Electrics</li>
+              <li>{CONTACT.companyName}</li>
               <li>
                 <a
-                  href={mapsUrl}
+                  href={CONTACT.mapsSearchUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-white transition-colors"
                 >
-                  13 Laburnum Drive, Oswaldtwistle
+                  {CONTACT.address.line1}
                   <br />
-                  Accrington, BB5 3AW
+                  {CONTACT.address.line2}
                   <br />
-                  United Kingdom
+                  {CONTACT.address.country}
                 </a>
               </li>
               <li>
-                <a href="tel:+447889133123" className="hover:text-white transition-colors">
-                  +44 7889 133123
+                <a href={CONTACT.phoneHref} className="hover:text-white transition-colors">
+                  {CONTACT.phoneDisplay}
                 </a>
               </li>
               <li>
                 <a
-                  href="mailto:maautoelectrics@gmail.com"
+                  href={CONTACT.emailHref}
                   className="hover:text-white transition-colors break-all"
                 >
-                  maautoelectrics@gmail.com
+                  {CONTACT.email}
                 </a>
               </li>
             </ul>
@@ -113,7 +111,7 @@ export default function Footer() {
 
         {/* Footer Bottom */}
         <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-          <p>© {new Date().getFullYear()} MA Auto Electrics. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} {CONTACT.companyName}. All rights reserved.</p>
         </div>
 
         <div className="mt-4 flex flex-col sm:flex-row justify-center items-center gap-3 text-center font-semibold text-gray-400">

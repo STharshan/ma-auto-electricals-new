@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { ShoppingCart, Trash2, Plus, Minus, X } from "lucide-react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
 export default function CartPage() {
   const [cart, setCart] = useState([]);
   const [showCheckout, setShowCheckout] = useState(false);
+  const [syncingCart, setSyncingCart] = useState(false);
   const [userDetails, setUserDetails] = useState({
     name: "",
     email: "",
@@ -16,6 +17,72 @@ export default function CartPage() {
   const navigate = useNavigate();
   const API_URL = import.meta.env.VITE_API_URL;
 
+  const updateCart = useCallback((updatedCart) => {
+    setCart(updatedCart);
+    localStorage.setItem("cart", JSON.stringify(updatedCart));
+    window.dispatchEvent(new Event("storage"));
+  }, []);
+
+  const refreshCartFromServer = useCallback(async () => {
+    const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
+    if (storedCart.length === 0) {
+      updateCart([]);
+      return { updatedCart: [], hasUnavailableItems: false, hasPriceChanges: false };
+    }
+
+    setSyncingCart(true);
+
+    try {
+      const res = await fetch(`${API_URL}/api/products`);
+      const data = await res.json();
+      const liveProducts = Array.isArray(data) ? data : data.products ?? [];
+      const productMap = new Map(liveProducts.map((product) => [String(product._id), product]));
+
+      let hasUnavailableItems = false;
+      let hasPriceChanges = false;
+
+      const updatedCart = storedCart.map((item) => {
+        const liveProduct = productMap.get(String(item._id));
+
+        if (!liveProduct) {
+          hasUnavailableItems = true;
+          return { ...item, count: 0 };
+        }
+
+        const safeCount = Number(liveProduct.count) || 0;
+        const nextQuantity = Math.max(1, Math.min(item.quantity, safeCount || item.quantity));
+
+        if (safeCount === 0 || nextQuantity !== item.quantity) {
+          hasUnavailableItems = true;
+        }
+
+        if (Number(item.price) !== Number(liveProduct.price)) {
+          hasPriceChanges = true;
+        }
+
+        return {
+          ...item,
+          ...liveProduct,
+          quantity: nextQuantity,
+          count: safeCount,
+        };
+      });
+
+      updateCart(updatedCart);
+      return { updatedCart, hasUnavailableItems, hasPriceChanges };
+    } catch (error) {
+      console.error("Failed to refresh cart from server:", error);
+      toast.error("Unable to refresh cart right now. Please try again.", { duration: 2000 });
+      return {
+        updatedCart: storedCart,
+        hasUnavailableItems: storedCart.some((item) => item.count === 0 || item.quantity > item.count),
+        hasPriceChanges: false,
+      };
+    } finally {
+      setSyncingCart(false);
+    }
+  }, [API_URL, updateCart]);
+
   // Load cart from localStorage and ensure count is included
   useEffect(() => {
     const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
@@ -25,13 +92,8 @@ export default function CartPage() {
       count: item.count ?? 0, // stock count from backend
     }));
     setCart(updatedCart);
-  }, []);
-
-  const updateCart = (updatedCart) => {
-    setCart(updatedCart);
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
-    window.dispatchEvent(new Event("storage"));
-  };
+    refreshCartFromServer();
+  }, [refreshCartFromServer]);
 
   const handleIncrease = (id) => {
     const item = cart.find((c) => c._id === id);
@@ -102,15 +164,38 @@ export default function CartPage() {
       }
 
       if (data.url) window.location.href = data.url;
-    } catch (err) {
-     
+    } catch (error) {
+      console.error("Checkout payment request failed:", error);
       toast.error("Payment failed", { duration: 2000 });
     }
   };
 
+  const handleOpenCheckout = async () => {
+    const { updatedCart, hasUnavailableItems, hasPriceChanges } = await refreshCartFromServer();
+
+    if (updatedCart.length === 0) {
+      toast.error("Your cart is empty", { duration: 2000 });
+      setShowCheckout(false);
+      return;
+    }
+
+    if (hasPriceChanges) {
+      toast.success("Cart prices were refreshed to the latest values.", { duration: 2500 });
+    }
+
+    if (hasUnavailableItems) {
+      toast.error("Your cart was updated for current stock. Please review it before checkout.", {
+        duration: 2500,
+      });
+      setShowCheckout(false);
+      return;
+    }
+
+    setShowCheckout(true);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-6 pt-28">
-      <Toaster position="top-right" />
       <div className="max-w-6xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-800 mb-8 flex items-center gap-2">
           <ShoppingCart size={28} /> Your Cart
@@ -188,10 +273,11 @@ export default function CartPage() {
                 £{totalPrice.toFixed(2)}
               </span>
               <button
-                onClick={() => setShowCheckout(true)}
-                className="bg-[#317F21] hover:bg-[#3ad81a] text-white font-semibold py-3 px-6 rounded-xl transition"
+                onClick={handleOpenCheckout}
+                disabled={syncingCart}
+                className="bg-[#317F21] hover:bg-[#3ad81a] text-white font-semibold py-3 px-6 rounded-xl transition disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                Buy Now
+                {syncingCart ? "Refreshing Cart..." : "Buy Now"}
               </button>
             </div>
 

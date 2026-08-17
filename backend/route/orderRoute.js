@@ -2,21 +2,23 @@ import express from "express";
 import OrderModel from "../models/orderModel.js";
 import { sendEmail } from "../utils/sendEmail.js";
 import authMiddleware from "../middleware/auth.js";
+import requireAdmin from "../middleware/requireAdmin.js";
 
 const orderRouter = express.Router();
 
-// ── ADMIN: Get all orders ─────────────────────────────────────────
-orderRouter.get("/", authMiddleware, async (req, res) => {
+// Admin: Get all orders
+orderRouter.get("/", authMiddleware, requireAdmin, async (req, res) => {
   try {
     const orders = await OrderModel.find().sort({ createdAt: -1 });
     res.json(orders);
-  } catch {
-    res.status(500).json({ error: "Server error" });
+  } catch (error) {
+    console.error("Failed to fetch orders:", error);
+    res.status(500).json({ error: "Failed to fetch orders" });
   }
 });
 
-// ── ADMIN: Cancel order ───────────────────────────────────────────
-orderRouter.post("/:orderId/admin-cancel", authMiddleware, async (req, res) => {
+// Admin: Cancel order
+orderRouter.post("/:orderId/admin-cancel", authMiddleware, requireAdmin, async (req, res) => {
   const { cancelNote } = req.body;
   try {
     const order = await OrderModel.findOne({ orderId: req.params.orderId });
@@ -25,62 +27,52 @@ orderRouter.post("/:orderId/admin-cancel", authMiddleware, async (req, res) => {
 
     // Save original payment status so restore can bring it back
     order.originalPaymentStatus = order.payment_status;
-    order.isCancelled    = true;
-    order.cancelNote     = cancelNote?.trim() || "Cancelled by admin";
-    order.cancelledAt    = new Date();
+    order.isCancelled = true;
+    order.cancelNote = cancelNote?.trim() || "Cancelled by admin";
+    order.cancelledAt = new Date();
     order.payment_status = "cancelled";
     await order.save();
 
     await sendEmail({
       to: order.email,
-      subject: `Your Order Has Been Cancelled — #${order.orderId}`,
+      subject: `Your Order Has Been Cancelled - #${order.orderId}`,
       html: cancelEmailHtml(order),
     });
 
     res.json({ success: true, message: "Order cancelled. Customer notified." });
   } catch (err) {
+    console.error("Failed to cancel order:", err);
     res.status(500).json({ error: err.message || "Server error" });
   }
 });
 
-// ── ADMIN: Restore cancelled order ───────────────────────────────
-orderRouter.post("/:orderId/admin-restore", authMiddleware, async (req, res) => {
+// Admin: Restore cancelled order
+orderRouter.post("/:orderId/admin-restore", authMiddleware, requireAdmin, async (req, res) => {
   try {
     const order = await OrderModel.findOne({ orderId: req.params.orderId });
     if (!order) return res.status(404).json({ success: false, error: "Order not found" });
     if (!order.isCancelled) return res.json({ success: false, message: "Order is not cancelled" });
 
-    order.isCancelled    = false;
+    order.isCancelled = false;
     order.payment_status = order.originalPaymentStatus || "paid";
-    order.cancelNote     = "";
-    order.cancelledAt    = undefined;
+    order.cancelNote = "";
+    order.cancelledAt = undefined;
     order.originalPaymentStatus = undefined;
     await order.save();
 
     await sendEmail({
       to: order.email,
-      subject: `Your Order Has Been Restored — #${order.orderId}`,
+      subject: `Your Order Has Been Restored - #${order.orderId}`,
       html: restoreEmailHtml(order),
     });
 
     res.json({ success: true, message: "Order restored. Customer notified." });
   } catch (err) {
+    console.error("Failed to restore order:", err);
     res.status(500).json({ error: err.message || "Server error" });
   }
 });
 
-// ── Get single order by stripeSessionId (SuccessPage) ────────────
-orderRouter.get("/:sessionId", async (req, res) => {
-  try {
-    const order = await OrderModel.findOne({ stripeSessionId: req.params.sessionId });
-    if (!order) return res.status(404).json({ error: "Order not found" });
-    res.json(order);
-  } catch {
-    res.status(500).json({ error: "Server error" });
-  }
-});
-
-// ── EMAIL TEMPLATES ───────────────────────────────────────────────
 function cancelEmailHtml(order) {
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"/></head>
 <body style="margin:0;padding:0;background:#f4f4f4;font-family:Arial,sans-serif;">
@@ -96,7 +88,7 @@ function cancelEmailHtml(order) {
     <p style="color:#555;font-size:14px;">Your order <strong>#${order.orderId}</strong> has been cancelled.</p>
     <table width="100%" style="background:#f9f9f9;border-radius:8px;padding:14px;border:1px solid #eee;margin:16px 0;font-size:13px;">
       <tr><td style="color:#888;padding:4px 0;width:130px;">Order ID</td><td style="color:#333;font-weight:600;">#${order.orderId}</td></tr>
-      <tr><td style="color:#888;padding:4px 0;">Amount</td><td style="color:#333;">£${Number(order.amount).toFixed(2)}</td></tr>
+      <tr><td style="color:#888;padding:4px 0;">Amount</td><td style="color:#333;">GBP ${Number(order.amount).toFixed(2)}</td></tr>
       ${order.cancelNote ? `<tr><td style="color:#888;padding:4px 0;">Reason</td><td style="color:#333;">${order.cancelNote}</td></tr>` : ""}
     </table>
     <p style="color:#888;font-size:12px;">Questions? Email us at <a href="mailto:${process.env.ADMIN_EMAIL}" style="color:#317F21;">${process.env.ADMIN_EMAIL}</a></p>
@@ -120,7 +112,7 @@ function restoreEmailHtml(order) {
     <p style="color:#555;font-size:14px;">Great news! Your order <strong>#${order.orderId}</strong> has been restored and is now active again.</p>
     <table width="100%" style="background:#f9f9f9;border-radius:8px;padding:14px;border:1px solid #eee;margin:16px 0;font-size:13px;">
       <tr><td style="color:#888;padding:4px 0;width:130px;">Order ID</td><td style="color:#333;font-weight:600;">#${order.orderId}</td></tr>
-      <tr><td style="color:#888;padding:4px 0;">Amount</td><td style="color:#317F21;font-weight:700;">£${Number(order.amount).toFixed(2)}</td></tr>
+      <tr><td style="color:#888;padding:4px 0;">Amount</td><td style="color:#317F21;font-weight:700;">GBP ${Number(order.amount).toFixed(2)}</td></tr>
       <tr><td style="color:#888;padding:4px 0;">Status</td><td style="color:#317F21;font-weight:600;">Active</td></tr>
     </table>
     <p style="color:#888;font-size:12px;">Questions? Email us at <a href="mailto:${process.env.ADMIN_EMAIL}" style="color:#317F21;">${process.env.ADMIN_EMAIL}</a></p>

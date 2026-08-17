@@ -172,12 +172,10 @@ const AddCar = ({ url, onSuccess }) => {
 
     // Send images in order — primary (index 0) first
     imageItems.forEach((item) => data.append("images", item.raw));
-    const token = localStorage.getItem("token");
     try {
      const res = await axios.post(`${url}/api/cars`, data, {
   headers: { 
     "Content-Type": "multipart/form-data",
-    "Authorization": `Bearer ${token}` // This sends the token
   },
 });
       if (res.data.success) {
@@ -199,7 +197,7 @@ const AddCar = ({ url, onSuccess }) => {
       } else {
         toast.error(res.data.message);
       }
-    } catch (err) {
+    } catch {
    
       toast.error("Error uploading car");
     } finally {

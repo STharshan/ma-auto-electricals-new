@@ -9,6 +9,7 @@ import {
     deleteService 
 } from '../controllers/InvoiceController.js';
 import authMiddleware from '../middleware/auth.js';
+import requireAdmin from '../middleware/requireAdmin.js';
 
 const router = express.Router();
 
@@ -19,8 +20,8 @@ router.get('/category/:category', getServicesByCategory);
 router.get('/:serviceId', getServiceById);
 
 // ── ADMIN: protected write routes ─────────────────────────────────
-router.post('/create', authMiddleware, createService);
-router.put('/update/:serviceId', authMiddleware, updateService);
-router.delete('/delete/:serviceId', authMiddleware, deleteService);
+router.post('/create', authMiddleware, requireAdmin, createService);
+router.put('/update/:serviceId', authMiddleware, requireAdmin, updateService);
+router.delete('/delete/:serviceId', authMiddleware, requireAdmin, deleteService);
 
 export default router;

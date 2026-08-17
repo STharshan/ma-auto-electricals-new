@@ -26,7 +26,7 @@ const CarList = ({ url }) => {
       setLoading(true);
       const res = await axios.get(`${url}/api/cars`);
       setList(res.data);
-    } catch (err) {
+    } catch {
       toast.error("Failed to fetch cars");
     } finally {
       setLoading(false);
@@ -35,11 +35,8 @@ const CarList = ({ url }) => {
 
   const removeCar = async (id) => {
     try {
-      const token = localStorage.getItem("token");
       setDeleteId(id);
-      await axios.delete(`${url}/api/cars/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axios.delete(`${url}/api/cars/${id}`);
       toast.success("Car deleted successfully");
       fetchList();
       setCarToDelete(null);

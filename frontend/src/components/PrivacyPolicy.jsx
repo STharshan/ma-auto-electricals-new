@@ -1,4 +1,5 @@
 import React from 'react';
+import { CONTACT } from "../constants/contact";
 
 const PrivacyPolicy = () => {
     return (
@@ -109,10 +110,10 @@ const PrivacyPolicy = () => {
                         If you have any questions about this Privacy Policy or how we handle your personal data, please contact us:
                     </p>
                     <div className="text-white">
-                        <p><strong>MA Auto electrics</strong></p>
-                        <p>Email: <a href="mailto:maautoelectrics@gmail.com" className="text-[#317F21] hover:underline">maautoelectrics@gmail.com</a></p>
-                        <p>Phone: +44 7889 133123</p>
-                        <p>Address: 13 laburnum drive Oswaldtwistle, accrington BB5 3AW, United Kingdom</p>
+                        <p><strong>{CONTACT.companyName}</strong></p>
+                        <p>Email: <a href={CONTACT.emailHref} className="text-[#317F21] hover:underline">{CONTACT.email}</a></p>
+                        <p>Phone: {CONTACT.phoneDisplay}</p>
+                        <p>Address: {CONTACT.address.inline}</p>
                         </div>
                         <p className="mt-2 text-white">
                         If you are not satisfied with our response, you have the right to lodge a complaint with the{' '}

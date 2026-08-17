@@ -1,6 +1,7 @@
 import React from "react";
 import { FaMapMarkerAlt, FaClock } from "react-icons/fa";
 import { FiPhone } from "react-icons/fi";
+import { CONTACT } from "../../constants/contact";
 
 function InfoCard({ icon, title, subtitle, body, cta, delay }) {
   return (
@@ -66,9 +67,9 @@ export default function ContactCards() {
             icon={<FiPhone className="h-5 w-5 md:h-6 md:w-6" />}
             title="Call Us"
             subtitle="Speak directly with our team"
-            body="+44 7889 133123"
+            body={CONTACT.phoneDisplay}
             cta={
-              <a href="tel:+44 7889 133123">
+              <a href={CONTACT.phoneHref}>
                 <button
                   className="h-9 rounded-md border px-3 text-xs md:text-sm font-medium 
                              transition-all duration-300 
@@ -92,12 +93,10 @@ export default function ContactCards() {
             icon={<FaMapMarkerAlt className="h-5 w-5 md:h-6 md:w-6" />}
             title="Visit Us"
             subtitle="Find us in Mansfield"
-            body={`13 laburnum drive Oswaldtwistle 
-accrington BB5 3AW,
-United Kingdom`}
+            body={CONTACT.address.multiline}
             cta={
               <a
-                href="https://maps.app.goo.gl/EPnqrDkCRBvqW38z8"
+                href={CONTACT.mapsDirectionsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
               >

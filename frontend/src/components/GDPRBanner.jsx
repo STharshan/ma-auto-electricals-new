@@ -18,6 +18,7 @@ export default function GDPRConsent() {
 
   const handleAccept = () => {
     localStorage.setItem("gdprConsent", "true");
+    window.dispatchEvent(new Event("gdprConsentChanged"));
     setAccepted(true);
     setVisible(false);
     setShowIcon(true);
@@ -25,6 +26,7 @@ export default function GDPRConsent() {
 
   const handleReject = () => {
     localStorage.setItem("gdprConsent", "false");
+    window.dispatchEvent(new Event("gdprConsentChanged"));
     setAccepted(false);
     setVisible(false);
     setShowIcon(true);

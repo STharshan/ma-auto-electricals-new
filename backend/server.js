@@ -1,6 +1,7 @@
 import "dotenv/config"; // MUST be first line
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
 import { connectDB } from "./config/db.js";
 import userRouter from "./route/userRoute.js";
 import carRouter from "./route/carRoute.js";
@@ -45,6 +46,11 @@ app.use(
 );
 
 // Normal middleware for all other routes
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+}));
 app.use(cors(corsOptions));
 app.use(express.json());
 

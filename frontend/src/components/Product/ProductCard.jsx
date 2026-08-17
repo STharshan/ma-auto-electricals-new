@@ -260,7 +260,9 @@ export default function ProductCard() {
       setCategories(options);
       setSelectedCategories((prev) => (prev.length === 0 ? [options[0]] : prev));
     } catch (err) {
-      
+      console.error("Failed to fetch products for product grid:", err);
+      setAllProducts([]);
+      setCategories([{ value: "All", label: "All Categories" }]);
     }
   }, [API_URL]);
 
@@ -273,7 +275,13 @@ export default function ProductCard() {
     socket.on("updateProduct", fetchAll);
     socket.on("stockUpdated", fetchAll);
     socket.on("deleteProduct", fetchAll);
-    return () => socket.disconnect();
+    return () => {
+      socket.off("newProduct", fetchAll);
+      socket.off("updateProduct", fetchAll);
+      socket.off("stockUpdated", fetchAll);
+      socket.off("deleteProduct", fetchAll);
+      socket.disconnect();
+    };
   }, [API_URL, fetchAll]);
 
   // ── Reset to page 1 when filters/search/sort change ────────────────────────
